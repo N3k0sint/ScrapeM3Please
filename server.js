@@ -202,66 +202,80 @@ io.on('connection', (socket) => {
     socket.on('scrapeAll', async (selector) => {
         try {
             const pages = await browser.pages();
-            // Try to find the page that is not about:blank, or default to the last page, or fallback to the page variable
-            const activePage = pages.find(p => p.url() !== 'about:blank') || pages[pages.length - 1] || page;
+            // Filter out internal Chrome tabs (like about:blank, chrome://)
+            const webPages = pages.filter(p => p.url().startsWith('http'));
+            const activePage = webPages[webPages.length - 1] || pages[pages.length - 1] || page;
             if (!activePage) {
                 socket.emit('error', 'Browser is not open or no active page found');
                 return;
             }
 
             socket.emit('status', 'Scraping data...');
-            const data = await activePage.evaluate((sel) => {
-                const elements = document.querySelectorAll(sel);
-                return Array.from(elements).map(el => {
-                    // Try to get text, link, and image if present inside the element
-                    const text = el.innerText || el.textContent;
-                    const href = el.href || (el.querySelector('a') ? el.querySelector('a').href : null);
-                    
-                    let img = el.src;
-                    
-                    // Check for lazy-loaded attributes if it's an img element
-                    if (el.tagName.toLowerCase() === 'img') {
-                        img = el.getAttribute('data-src') || el.getAttribute('srcset') || el.src;
-                    }
-                    
-                    // If no direct image, search children
-                    if (!img && el.querySelector('img')) {
-                        const childImg = el.querySelector('img');
-                        img = childImg.getAttribute('data-src') || childImg.getAttribute('srcset') || childImg.src;
-                    }
+            let allData = [];
+            const frames = activePage.frames();
 
-                    // Clean up srcset if used (takes the first URL)
-                    if (img && img.includes(' ')) {
-                        img = img.split(' ')[0];
-                    }
+            for (const frame of frames) {
+                try {
+                    const data = await frame.evaluate((sel) => {
+                        const elements = document.querySelectorAll(sel);
+                        return Array.from(elements).map(el => {
+                            // Try to get text, link, and image if present inside the element
+                            const text = el.innerText || el.textContent;
+                            const href = el.href || (el.querySelector('a') ? el.querySelector('a').href : null);
+                            
+                            let img = el.src;
+                            
+                            // Check for lazy-loaded attributes if it's an img element
+                            if (el.tagName.toLowerCase() === 'img') {
+                                img = el.getAttribute('data-src') || el.getAttribute('srcset') || el.src;
+                            }
+                            
+                            // If no direct image, search children
+                            if (!img && el.querySelector('img')) {
+                                const childImg = el.querySelector('img');
+                                img = childImg.getAttribute('data-src') || childImg.getAttribute('srcset') || childImg.src;
+                            }
 
-                    if (!img) {
-                        // Check for background image on the element itself
-                        const bgImg = window.getComputedStyle(el).backgroundImage;
-                        if (bgImg && bgImg !== 'none') {
-                            const match = bgImg.match(/url\(['"]?(.*?)['"]?\)/);
-                            if (match) img = match[1];
-                        }
-                    }
-                    if (!img && el.querySelector('*')) {
-                        // Check children for background image (common in modern frameworks)
-                        const withBg = Array.from(el.querySelectorAll('*')).find(child => {
-                            const bg = window.getComputedStyle(child).backgroundImage;
-                            return bg && bg !== 'none';
+                            // Clean up srcset if used (takes the first URL)
+                            if (img && img.includes(' ')) {
+                                img = img.split(' ')[0];
+                            }
+
+                            if (!img) {
+                                // Check for background image on the element itself
+                                const bgImg = window.getComputedStyle(el).backgroundImage;
+                                if (bgImg && bgImg !== 'none') {
+                                    const match = bgImg.match(/url\(['"]?(.*?)['"]?\)/);
+                                    if (match) img = match[1];
+                                }
+                            }
+                            if (!img && el.querySelector('*')) {
+                                // Check children for background image (common in modern frameworks)
+                                const withBg = Array.from(el.querySelectorAll('*')).find(child => {
+                                    const bg = window.getComputedStyle(child).backgroundImage;
+                                    return bg && bg !== 'none';
+                                });
+                                if (withBg) {
+                                    const match = window.getComputedStyle(withBg).backgroundImage.match(/url\(['"]?(.*?)['"]?\)/);
+                                    if (match) img = match[1];
+                                }
+                            }
+
+                            const html = el.innerHTML;
+                            return { text: text?.trim(), href, img, html };
                         });
-                        if (withBg) {
-                            const match = window.getComputedStyle(withBg).backgroundImage.match(/url\(['"]?(.*?)['"]?\)/);
-                            if (match) img = match[1];
-                        }
+                    }, selector);
+
+                    if (data && data.length > 0) {
+                        allData = allData.concat(data);
                     }
+                } catch (e) {
+                    // Ignore frame evaluation errors (common on cross-origin iframe security restrictions)
+                }
+            }
 
-                    const html = el.innerHTML;
-                    return { text: text?.trim(), href, img, html };
-                });
-            }, selector);
-
-            socket.emit('scrapeComplete', data);
-            socket.emit('status', `Successfully scraped ${data.length} items.`);
+            socket.emit('scrapeComplete', allData);
+            socket.emit('status', `Successfully scraped ${allData.length} items.`);
         } catch (error) {
             console.error(error);
             socket.emit('error', 'Error scraping: ' + error.message);
@@ -271,7 +285,8 @@ io.on('connection', (socket) => {
     socket.on('toggleSelectionMode', async (enabled) => {
         try {
             const pages = await browser.pages();
-            const activePage = pages.find(p => p.url() !== 'about:blank') || pages[pages.length - 1] || page;
+            const webPages = pages.filter(p => p.url().startsWith('http'));
+            const activePage = webPages[webPages.length - 1] || pages[pages.length - 1] || page;
             if (!activePage) return;
 
             const frames = activePage.frames();
