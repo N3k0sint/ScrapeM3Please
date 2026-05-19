@@ -45,6 +45,30 @@ This tool allows you to extract data (text, links, images, and HTML) from almost
    http://localhost:3000
    ```
 
+### Building Standalone Executables
+If you want to package this tool into a standalone executable file (`.exe` for Windows, or binary files for Linux and Mac) so you can share it with friends who do not have Node.js installed:
+
+1. **Install `pkg` globally:**
+   ```bash
+   npm install -g pkg
+   ```
+2. **Compile the project:**
+   Run the compilation command for your platform (or run all three to distribute!):
+   
+   - **For Windows (.exe):**
+     ```bash
+     npx pkg . -t node18-win-x64 -o build/ScrapeM3Please.exe
+     ```
+   - **For Linux:**
+     ```bash
+     npx pkg . -t node18-linux-x64 -o build/ScrapeM3Please-Linux
+     ```
+   - **For macOS:**
+     ```bash
+     npx pkg . -t node18-macos-x64 -o build/ScrapeM3Please-MacOS
+     ```
+   This will generate the standalone files inside the `build/` directory.
+
 ---
 
 ## How to Use the Scraper

@@ -5,12 +5,12 @@ const path = require('path');
 const fs = require('fs');
 const axios = require('axios');
 const archiver = require('archiver');
-
+const { exec } = require('child_process');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
 app.post('/download-images', async (req, res) => {
@@ -75,6 +75,41 @@ let page = null;
 // The picker script content
 const pickerScript = fs.readFileSync(path.join(__dirname, 'scripts', 'picker.js'), 'utf8');
 
+function findBrowser() {
+    const isWindows = process.platform === 'win32';
+    const isMac = process.platform === 'darwin';
+    const isLinux = process.platform === 'linux';
+
+    const paths = [];
+    if (isWindows) {
+        paths.push(
+            'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+            'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+            'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+            'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
+        );
+    } else if (isMac) {
+        paths.push(
+            '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+            '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'
+        );
+    } else if (isLinux) {
+        paths.push(
+            '/usr/bin/google-chrome',
+            '/usr/bin/google-chrome-stable',
+            '/usr/bin/chromium-browser',
+            '/usr/bin/microsoft-edge'
+        );
+    }
+
+    for (const p of paths) {
+        if (fs.existsSync(p)) {
+            return p;
+        }
+    }
+    return null; // Fallback to puppeteer's default downloaded browser if in dev mode
+}
+
 io.on('connection', (socket) => {
     console.log('Client connected');
 
@@ -88,9 +123,12 @@ io.on('connection', (socket) => {
                 await browser.close();
             }
 
+            const browserPath = findBrowser();
+
             browser = await puppeteerExtra.launch({
                 headless: false,
                 defaultViewport: null,
+                executablePath: browserPath || undefined,
                 ignoreDefaultArgs: ['--enable-automation'],
                 args: [
                     '--start-maximized',
@@ -245,4 +283,9 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
+    
+    // Auto-open browser
+    const url = `http://localhost:${PORT}`;
+    const startCmd = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
+    exec(`${startCmd} ${url}`);
 });
