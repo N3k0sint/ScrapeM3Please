@@ -149,6 +149,8 @@ io.on('connection', (socket) => {
                 executablePath: browserPath || undefined,
                 ignoreDefaultArgs: ['--enable-automation'],
                 args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
                     '--start-maximized',
                     '--disable-blink-features=AutomationControlled',
                     '--disable-infobars',
