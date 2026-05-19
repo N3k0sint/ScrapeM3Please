@@ -179,6 +179,8 @@ io.on('connection', (socket) => {
                 args: [
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
+                    '--disable-gpu',
+                    '--disable-dev-shm-usage',
                     '--start-maximized',
                     '--disable-blink-features=AutomationControlled',
                     '--disable-infobars',

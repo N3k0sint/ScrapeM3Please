@@ -25,7 +25,7 @@ This tool allows you to extract data (text, links, images, and HTML) from almost
 1. **Clone or Download the Repository:**
    ```bash
    git clone https://github.com/N3k0sint/ScrapeM3Please
-   cd WebScrapper
+   cd ScrapeM3Please
    ```
 
 2. **Install Dependencies:**
