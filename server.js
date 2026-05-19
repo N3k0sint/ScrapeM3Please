@@ -87,35 +87,63 @@ function findBrowser() {
 
     const paths = [];
     if (isWindows) {
+        // Global Program Files paths
         paths.push(
             'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
             'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
             'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
-            'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
+            'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+            'C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe',
+            'C:\\Program Files (x86)\\BraveSoftware\\Brave-Browser\\Application\\brave.exe',
+            'C:\\Program Files\\Chromium\\Application\\chrome.exe',
+            'C:\\Program Files\\Opera\\launcher.exe',
+            'C:\\Program Files (x86)\\Opera\\launcher.exe',
+            'C:\\Program Files\\Vivaldi\\Application\\vivaldi.exe'
         );
+        // User Local AppData paths
         if (process.env.LOCALAPPDATA) {
             paths.push(
                 path.join(process.env.LOCALAPPDATA, 'Google', 'Chrome', 'Application', 'chrome.exe'),
-                path.join(process.env.LOCALAPPDATA, 'Microsoft', 'Edge', 'Application', 'msedge.exe')
+                path.join(process.env.LOCALAPPDATA, 'Microsoft', 'Edge', 'Application', 'msedge.exe'),
+                path.join(process.env.LOCALAPPDATA, 'BraveSoftware', 'Brave-Browser', 'Application', 'brave.exe'),
+                path.join(process.env.LOCALAPPDATA, 'Chromium', 'Application', 'chrome.exe'),
+                path.join(process.env.LOCALAPPDATA, 'Programs', 'Opera', 'launcher.exe'),
+                path.join(process.env.LOCALAPPDATA, 'Vivaldi', 'Application', 'vivaldi.exe')
             );
         }
         if (process.env.USERPROFILE) {
             paths.push(
                 path.join(process.env.USERPROFILE, 'AppData', 'Local', 'Google', 'Chrome', 'Application', 'chrome.exe'),
-                path.join(process.env.USERPROFILE, 'AppData', 'Local', 'Microsoft', 'Edge', 'Application', 'msedge.exe')
+                path.join(process.env.USERPROFILE, 'AppData', 'Local', 'Microsoft', 'Edge', 'Application', 'msedge.exe'),
+                path.join(process.env.USERPROFILE, 'AppData', 'Local', 'BraveSoftware', 'Brave-Browser', 'Application', 'brave.exe'),
+                path.join(process.env.USERPROFILE, 'AppData', 'Local', 'Chromium', 'Application', 'chrome.exe'),
+                path.join(process.env.USERPROFILE, 'AppData', 'Local', 'Programs', 'Opera', 'launcher.exe'),
+                path.join(process.env.USERPROFILE, 'AppData', 'Local', 'Vivaldi', 'Application', 'vivaldi.exe')
             );
         }
     } else if (isMac) {
         paths.push(
             '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-            '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'
+            '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+            '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser',
+            '/Applications/Chromium.app/Contents/MacOS/Chromium',
+            '/Applications/Opera.app/Contents/MacOS/Opera',
+            '/Applications/Vivaldi.app/Contents/MacOS/Vivaldi'
         );
     } else if (isLinux) {
         paths.push(
             '/usr/bin/google-chrome',
             '/usr/bin/google-chrome-stable',
             '/usr/bin/chromium-browser',
-            '/usr/bin/microsoft-edge'
+            '/usr/bin/chromium',
+            '/usr/bin/microsoft-edge',
+            '/usr/bin/brave-browser',
+            '/usr/bin/brave',
+            '/usr/bin/opera',
+            '/usr/bin/vivaldi',
+            '/snap/bin/brave',
+            '/snap/bin/chromium',
+            '/var/lib/flatpak/exports/bin/com.brave.Browser'
         );
     }
 
@@ -140,7 +168,7 @@ io.on('connection', (socket) => {
             const browserPath = findBrowser();
             console.log(`[Launch] Target browser detected path: ${browserPath || 'none'}`);
             if (!browserPath && process.pkg) {
-                throw new Error("Compatible browser (Google Chrome or Microsoft Edge) not found. Please install Google Chrome or Microsoft Edge to use ScrapeM3Please standalone binary.");
+                throw new Error("Compatible Chromium-based browser (Google Chrome, Microsoft Edge, Brave, Chromium, Opera, or Vivaldi) not found. Please install one of them to use this tool.");
             }
 
             browser = await puppeteerExtra.launch({
