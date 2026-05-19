@@ -138,6 +138,7 @@ io.on('connection', (socket) => {
             }
 
             const browserPath = findBrowser();
+            console.log(`[Launch] Target browser detected path: ${browserPath || 'none'}`);
             if (!browserPath && process.pkg) {
                 throw new Error("Compatible browser (Google Chrome or Microsoft Edge) not found. Please install Google Chrome or Microsoft Edge to use ScrapeM3Please standalone binary.");
             }
@@ -299,6 +300,17 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
+
+server.on('error', (e) => {
+    if (e.code === 'EADDRINUSE') {
+        console.error(`\n======================================================`);
+        console.error(`ERROR: Port ${PORT} is already in use by another process.`);
+        console.error(`Please close any existing instances of ScrapeM3Please.`);
+        console.error(`======================================================\n`);
+        process.exit(1);
+    }
+});
+
 server.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
     

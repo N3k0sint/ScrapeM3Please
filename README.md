@@ -111,6 +111,19 @@ If you see `########` in an Excel column (usually for dates), it simply means th
 Web scraping requires a bit of trial and error! If you try to scrape reviews but accidentally scrape the website's navigation menu as well, it means you clicked on a very "generic" element (like a plain `<div>`). 
 **The Fix:** Try to find a more unique element inside the review box to click on, such as the timestamp, the star rating, or the author's username.
 
+### Standalone Executables: Linux Permission Denied
+If you are running the standalone Linux binary and get a "Permission Denied" error, it is because Git does not preserve the executable bit by default.
+**The Fix:** Open a terminal and grant execute permissions to the binary before running it:
+```bash
+chmod +x build/ScrapeM3Please-Linux
+./build/ScrapeM3Please-Linux
+```
+
+### Stuck on "Ready to start" / Port 3000 Conflicts
+If the dashboard opens but clicking **Launch Target Browser** does not respond or stays stuck on "Ready to start":
+1. Check your terminal output. If you see an `EADDRINUSE` error, another instance of `ScrapeM3Please` is already running in the background and occupying Port 3000.
+2. **The Fix:** Close all terminal windows and open your Task Manager (Windows) or System Monitor (Linux/Mac) and terminate any lingering `ScrapeM3Please` or `Node.js` processes. Then, run the executable again.
+
 ## Tech Stack
 - **Backend:** Node.js, Express, Socket.io
 - **Scraping Engine:** Puppeteer, Puppeteer-Extra (Stealth Plugin)
