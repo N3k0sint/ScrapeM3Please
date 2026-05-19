@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScrapeM3Please</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-text">
+                <h1>ScrapeM3Please</h1>
+                <p>Point and click on elements to extract data</p>
+            </div>
+            <button id="themeToggleBtn" class="btn outline" style="padding: 0.5rem; display: flex; align-items: center; justify-content: center; border-radius: 50%; width: 40px; height: 40px;" aria-label="Toggle Theme">
+                <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
+        </header>
+
+        <main>
+            <section class="control-panel glass-panel">
+                <div class="input-group">
+                    <input type="url" id="targetUrl" placeholder="https://example.com" value="https://news.ycombinator.com" required>
+                    <button id="launchBtn" class="btn primary">Launch Target Browser</button>
+                    <button id="closeBtn" class="btn danger hidden">Close Target Browser</button>
+                </div>
+                <div class="input-group" id="selectionModeGroup" class="hidden" style="display: none;">
+                    <button id="toggleSelectionBtn" class="btn outline" style="width: 100%;">Enable Selection Mode (Currently: OFF)</button>
+                </div>
+                <div class="status-box">
+                    <span class="status-indicator" id="statusIndicator"></span>
+                    <span id="statusText">Ready to start</span>
+                </div>
+            </section>
+
+            <section id="selectorPanel" class="selector-panel glass-panel hidden">
+                <h2>Element Selected</h2>
+                <div class="selector-display">
+                    <code id="cssSelector">...</code>
+                    <span class="badge" id="matchCount">0 matches</span>
+                </div>
+                
+                <div class="sample-data">
+                    <h3>Sample Text Preview:</h3>
+                    <pre id="sampleText">...</pre>
+                </div>
+
+                <div class="actions">
+                    <button id="scrapeBtn" class="btn action">Scrape & Display Data</button>
+                </div>
+            </section>
+
+            <section id="resultsPanel" class="results-panel glass-panel hidden">
+                <h2>Results</h2>
+                <div class="export-options">
+                    <button id="downloadJsonBtn" class="btn outline">Download JSON</button>
+                    <button id="downloadCsvBtn" class="btn outline">Download CSV</button>
+                    <button id="downloadImgBtn" class="btn outline hidden">Download Images (ZIP)</button>
+                    <button id="viewHtmlBtn" class="btn outline">View HTML Content</button>
+                </div>
+                <div class="table-container">
+                    <table id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Text Content</th>
+                                <th>Found Link</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- Modal for viewing HTML -->
+            <div id="htmlModal" class="modal hidden">
+                <div class="modal-content glass-panel">
+                    <span class="close-modal">&times;</span>
+                    <h2>Raw HTML Content</h2>
+                    <pre id="modalHtmlContent"></pre>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
