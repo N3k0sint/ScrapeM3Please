@@ -24,7 +24,7 @@ This tool allows you to extract data (text, links, images, and HTML) from almost
 
 1. **Clone or Download the Repository:**
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/N3k0sint/ScrapeM3Please
    cd WebScrapper
    ```
 
@@ -91,3 +91,26 @@ Web scraping requires a bit of trial and error! If you try to scrape reviews but
 - **Backend:** Node.js, Express, Socket.io
 - **Scraping Engine:** Puppeteer, Puppeteer-Extra (Stealth Plugin)
 - **Frontend:** Vanilla HTML/CSS/JS with a professional SaaS-style Dark/Light theme UI
+
+---
+
+## Legal Disclaimer & Ethical Policy
+
+> [!CAUTION]
+> **For Educational and Research Purposes Only**
+> This tool ("ScrapeM3Please") was created strictly for educational purposes, security research, and personal learning. The authors and contributors are not responsible for any misuse, damage, or legal consequences caused by the use of this software. 
+
+### Ethical Scraping Guidelines
+When using this tool, you agree to adhere to the following ethical guidelines:
+1. **Respect Terms of Service:** Do not scrape websites that explicitly forbid automated data extraction in their Terms of Service (ToS).
+2. **Respect `robots.txt`:** Always check and honor a website's `robots.txt` file before scraping.
+3. **Avoid Disruption:** Do not use this tool to perform Denial of Service (DoS) attacks or send an overwhelming amount of requests that could degrade a website's performance.
+4. **Data Privacy:** Do not scrape, store, or distribute personally identifiable information (PII) or sensitive user data without explicit consent.
+
+By downloading and running this software, you assume full responsibility for your actions and compliance with local and international laws regarding data scraping and copyright.
+
+---
+
+## License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details. You are free to use, modify, and distribute this software for educational and personal projects.
