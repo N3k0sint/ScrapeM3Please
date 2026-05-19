@@ -111,6 +111,7 @@ launchBtn.addEventListener('click', () => {
     const url = targetUrl.value;
     if (!url) return alert('Please enter a URL');
     statusText.style.color = 'var(--text-secondary)';
+    statusText.textContent = 'Launching browser, please wait...';
     socket.emit('launchBrowser', url);
 });
 

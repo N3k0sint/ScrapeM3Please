@@ -93,6 +93,18 @@ function findBrowser() {
             'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
             'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
         );
+        if (process.env.LOCALAPPDATA) {
+            paths.push(
+                path.join(process.env.LOCALAPPDATA, 'Google', 'Chrome', 'Application', 'chrome.exe'),
+                path.join(process.env.LOCALAPPDATA, 'Microsoft', 'Edge', 'Application', 'msedge.exe')
+            );
+        }
+        if (process.env.USERPROFILE) {
+            paths.push(
+                path.join(process.env.USERPROFILE, 'AppData', 'Local', 'Google', 'Chrome', 'Application', 'chrome.exe'),
+                path.join(process.env.USERPROFILE, 'AppData', 'Local', 'Microsoft', 'Edge', 'Application', 'msedge.exe')
+            );
+        }
     } else if (isMac) {
         paths.push(
             '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
@@ -126,6 +138,9 @@ io.on('connection', (socket) => {
             }
 
             const browserPath = findBrowser();
+            if (!browserPath && process.pkg) {
+                throw new Error("Compatible browser (Google Chrome or Microsoft Edge) not found. Please install Google Chrome or Microsoft Edge to use ScrapeM3Please standalone binary.");
+            }
 
             browser = await puppeteerExtra.launch({
                 headless: false,
