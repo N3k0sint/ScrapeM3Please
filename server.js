@@ -6,6 +6,11 @@ const fs = require('fs');
 const axios = require('axios');
 const archiver = require('archiver');
 const { exec } = require('child_process');
+const puppeteerExtra = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+
+// Initialize Puppeteer stealth plugin
+puppeteerExtra.use(StealthPlugin());
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
@@ -115,9 +120,6 @@ io.on('connection', (socket) => {
 
     socket.on('launchBrowser', async (url) => {
         try {
-            const puppeteerExtra = (await import('puppeteer-extra')).default;
-            const StealthPlugin = (await import('puppeteer-extra-plugin-stealth')).default;
-            puppeteerExtra.use(StealthPlugin());
 
             if (browser) {
                 await browser.close();
