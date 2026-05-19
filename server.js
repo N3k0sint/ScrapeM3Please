@@ -184,9 +184,10 @@ io.on('connection', (socket) => {
     socket.on('scrapeAll', async (selector) => {
         try {
             const pages = await browser.pages();
-            const activePage = pages[pages.length - 1]; // Use latest tab
+            // Try to find the page that is not about:blank, or default to the last page, or fallback to the page variable
+            const activePage = pages.find(p => p.url() !== 'about:blank') || pages[pages.length - 1] || page;
             if (!activePage) {
-                socket.emit('error', 'Browser is not open');
+                socket.emit('error', 'Browser is not open or no active page found');
                 return;
             }
 
@@ -252,7 +253,7 @@ io.on('connection', (socket) => {
     socket.on('toggleSelectionMode', async (enabled) => {
         try {
             const pages = await browser.pages();
-            const activePage = pages[pages.length - 1]; // Use latest tab
+            const activePage = pages.find(p => p.url() !== 'about:blank') || pages[pages.length - 1] || page;
             if (!activePage) return;
 
             const frames = activePage.frames();
