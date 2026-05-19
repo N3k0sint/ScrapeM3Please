@@ -181,6 +181,8 @@ io.on('connection', (socket) => {
                     '--disable-setuid-sandbox',
                     '--disable-gpu',
                     '--disable-dev-shm-usage',
+                    '--disable-web-security',
+                    '--disable-site-isolation-trials',
                     '--start-maximized',
                     '--disable-blink-features=AutomationControlled',
                     '--disable-infobars',
@@ -243,9 +245,11 @@ io.on('connection', (socket) => {
             socket.emit('status', 'Scraping data...');
             let allData = [];
             const frames = activePage.frames();
-
-            for (const frame of frames) {
+            console.log(`[Scrape] Querying selector "${selector}" across ${frames.length} frames...`);
+            for (let i = 0; i < frames.length; i++) {
+                const frame = frames[i];
                 try {
+                    const url = frame.url();
                     const data = await frame.evaluate((sel) => {
                         const elements = document.querySelectorAll(sel);
                         return Array.from(elements).map(el => {
@@ -296,11 +300,12 @@ io.on('connection', (socket) => {
                         });
                     }, selector);
 
+                    console.log(`  - Frame ${i} (${url}): found ${data ? data.length : 0} matches`);
                     if (data && data.length > 0) {
                         allData = allData.concat(data);
                     }
                 } catch (e) {
-                    // Ignore frame evaluation errors (common on cross-origin iframe security restrictions)
+                    console.error(`  - Frame ${i} failed to evaluate:`, e.message);
                 }
             }
 
