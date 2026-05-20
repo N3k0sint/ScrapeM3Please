@@ -76,6 +76,7 @@ app.post('/download-images', async (req, res) => {
 
 let browser = null;
 let page = null;
+let activePageInstance = null;
 
 // The picker script content
 const pickerScript = fs.readFileSync(path.join(__dirname, 'scripts', 'picker.js'), 'utf8');
@@ -191,9 +192,11 @@ io.on('connection', (socket) => {
             });
 
             page = (await browser.pages())[0];
+            activePageInstance = page;
             
             // Setup expose function and injection for the initial page
             await page.exposeFunction('onElementSelected', (data) => {
+                activePageInstance = page;
                 socket.emit('elementSelected', data);
             }).catch(()=> { /* ignore if already exposed */ });
             
@@ -205,6 +208,7 @@ io.on('connection', (socket) => {
                     const newPage = await target.page();
                     if (newPage) {
                         await newPage.exposeFunction('onElementSelected', (data) => {
+                            activePageInstance = newPage;
                             socket.emit('elementSelected', data);
                         }).catch(()=> {});
                         await newPage.evaluateOnNewDocument(pickerScript);
@@ -223,6 +227,7 @@ io.on('connection', (socket) => {
                 socket.emit('status', 'Browser closed.');
                 browser = null;
                 page = null;
+                activePageInstance = null;
             });
 
         } catch (error) {
@@ -236,10 +241,27 @@ io.on('connection', (socket) => {
             const pages = await browser.pages();
             // Filter out internal Chrome tabs (like about:blank, chrome://)
             const webPages = pages.filter(p => p.url().startsWith('http'));
-            const activePage = webPages[webPages.length - 1] || pages[pages.length - 1] || page;
+            const activePage = activePageInstance || webPages[webPages.length - 1] || pages[pages.length - 1] || page;
             if (!activePage) {
                 socket.emit('error', 'Browser is not open or no active page found');
                 return;
+            }
+
+            // Diagnostic log to inspect the page DOM state
+            try {
+                const info = await activePage.evaluate(() => {
+                    return {
+                        url: window.location.href,
+                        bodyLength: document.body ? document.body.innerHTML.length : 0,
+                        divCount: document.querySelectorAll('div').length,
+                        reviewsPropertyCount: document.querySelectorAll('[data-stid="property-reviews-list-item"]').length,
+                        reviewsProductCount: document.querySelectorAll('[data-stid="product-reviews-list-item"]').length,
+                        anyReviewsCount: document.querySelectorAll('[data-stid*="review"]').length
+                    };
+                });
+                console.log('[Scrape Debug Info]', info);
+            } catch (err) {
+                console.error('[Scrape Debug Info Error]', err.message);
             }
 
             socket.emit('status', 'Scraping data...');
@@ -277,7 +299,8 @@ io.on('connection', (socket) => {
 
                             if (!img) {
                                 // Check for background image on the element itself
-                                const bgImg = window.getComputedStyle(el).backgroundImage;
+                                const style = window.getComputedStyle(el);
+                                const bgImg = style ? style.backgroundImage : null;
                                 if (bgImg && bgImg !== 'none') {
                                     const match = bgImg.match(/url\(['"]?(.*?)['"]?\)/);
                                     if (match) img = match[1];
@@ -286,11 +309,14 @@ io.on('connection', (socket) => {
                             if (!img && el.querySelector('*')) {
                                 // Check children for background image (common in modern frameworks)
                                 const withBg = Array.from(el.querySelectorAll('*')).find(child => {
-                                    const bg = window.getComputedStyle(child).backgroundImage;
+                                    const style = window.getComputedStyle(child);
+                                    const bg = style ? style.backgroundImage : null;
                                     return bg && bg !== 'none';
                                 });
                                 if (withBg) {
-                                    const match = window.getComputedStyle(withBg).backgroundImage.match(/url\(['"]?(.*?)['"]?\)/);
+                                    const style = window.getComputedStyle(withBg);
+                                    const bgImg = style ? style.backgroundImage : null;
+                                    const match = bgImg ? bgImg.match(/url\(['"]?(.*?)['"]?\)/) : null;
                                     if (match) img = match[1];
                                 }
                             }
@@ -321,7 +347,7 @@ io.on('connection', (socket) => {
         try {
             const pages = await browser.pages();
             const webPages = pages.filter(p => p.url().startsWith('http'));
-            const activePage = webPages[webPages.length - 1] || pages[pages.length - 1] || page;
+            const activePage = activePageInstance || webPages[webPages.length - 1] || pages[pages.length - 1] || page;
             if (!activePage) return;
 
             const frames = activePage.frames();
