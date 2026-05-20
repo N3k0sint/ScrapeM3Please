@@ -47,6 +47,7 @@ const toggleSelectionBtn = document.getElementById('toggleSelectionBtn');
 // Export buttons
 const downloadJsonBtn = document.getElementById('downloadJsonBtn');
 const downloadCsvBtn = document.getElementById('downloadCsvBtn');
+const downloadTxtBtn = document.getElementById('downloadTxtBtn');
 const viewHtmlBtn = document.getElementById('viewHtmlBtn');
 const htmlModal = document.getElementById('htmlModal');
 const modalHtmlContent = document.getElementById('modalHtmlContent');
@@ -194,6 +195,23 @@ downloadCsvBtn.addEventListener('click', () => {
     
     const dataStr = "data:text/csv;charset=utf-8,\uFEFF" + encodeURIComponent(csvContent);
     downloadFile(dataStr, 'scraped_data.csv');
+});
+
+downloadTxtBtn.addEventListener('click', () => {
+    if (!scrapedData.length) return;
+    let txtContent = "";
+    
+    scrapedData.forEach((item, index) => {
+        txtContent += `========================================\n`;
+        txtContent += `ITEM #${index + 1}\n`;
+        txtContent += `========================================\n`;
+        txtContent += `Text:\n${item.text || '(No text content)'}\n\n`;
+        txtContent += `Link: ${item.href || '-'}\n`;
+        txtContent += `Image: ${item.img || '-'}\n\n\n`;
+    });
+    
+    const dataStr = "data:text/plain;charset=utf-8," + encodeURIComponent(txtContent);
+    downloadFile(dataStr, 'scraped_data.txt');
 });
 
 downloadImgBtn.addEventListener('click', async () => {
